@@ -1,0 +1,88 @@
+import pygame
+import sys
+
+pygame.init()
+screen = pygame.display.set_mode((640, 480))
+pygame.display.set_caption("gametitle")
+font = pygame.font.Font(None, 74)
+small_font = pygame.font.Font(None, 36)
+white = (255, 255, 255)
+black = (0, 0, 0)
+red = (255, 0, 0)
+
+
+
+
+
+
+#countdown system
+def countdown(seconds, task_done_callback):
+    start_ticks = pygame.time.get_ticks()  
+    task_done = False
+
+    while seconds > 0:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:  
+                if event.key == pygame.K_SPACE:  
+                    task_done = True
+
+
+        if task_done:
+            task_done_callback(True)
+            return
+
+
+        elapsed_ticks = pygame.time.get_ticks() - start_ticks
+        seconds_left = seconds - elapsed_ticks // 1000
+
+        screen.fill(black)
+
+        text = font.render(str(max(seconds_left, 0)), True, white)
+        text_rect = text.get_rect(center=(320, 240))
+        screen.blit(text, text_rect)
+
+        task_text = small_font.render("", True, white)
+        task_rect = task_text.get_rect(center=(320, 140))
+        screen.blit(task_text, task_rect)
+
+        pygame.display.flip()
+
+        if seconds_left <= 0:
+            task_done_callback(False)
+            return
+        
+def game_loop():
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN: 
+                    countdown(60, handle_task_result)
+
+        screen.fill(black)
+        intro_text = small_font.render("", True, white)
+        intro_rect = intro_text.get_rect(center=(320, 140))
+        screen.blit(intro_text, intro_rect)
+        pygame.display.flip()
+
+def handle_task_result(success):
+    if success:
+        result_text = ""
+        color = white
+    else:
+        result_text = ""
+        color = red
+
+    screen.fill(black)
+    result_render = font.render(result_text, True, color)
+    result_rect = result_render.get_rect(center=(320, 140))
+    screen.blit(result_render, result_rect)
+    pygame.display.flip()
+    pygame.time.wait(2000)  
+
+game_loop()
