@@ -1,0 +1,30 @@
+from PIL import Image
+
+
+def split_image(image_path, rows, cols):
+    img = Image.open(image_path)
+
+    img_width, img_height = img.size
+
+    block_width = img_width // cols
+    block_height = img_height // rows
+
+    images = []
+    for row in range(rows):
+        for col in range(cols):
+            left = col * block_width
+            top = row * block_height
+            right = (col + 1) * block_width
+            bottom = (row + 1) * block_height
+
+            cropped_image = img.crop((left, top, right, bottom))
+            images.append(cropped_image)
+
+    return images
+
+image_path = 'images\\img_2.jpg'  
+rows, cols = 4, 3 
+cropped_images = split_image(image_path, rows, cols)
+
+for i, img in enumerate(cropped_images):
+    img.save(f"images\\player_image_{i + 1}.jpg")
