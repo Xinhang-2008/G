@@ -1,0 +1,60 @@
+import pygame.sprite
+import os
+
+class Player(pygame.sprite.Sprite):
+    def __init__(self, image_name,size=(50,50)):
+        super().__init__()
+        self.image = pygame.image.load(os.path.join("output_images", image_name)).convert_alpha()
+        self.size = size
+        # resize
+        self.image = pygame.transform.scale(self.image,size)
+        self.rect = self.image.get_rect()
+        self.rect.center = (400, 500)
+        self.floor = pygame.image.load(os.path.join("output_images", "floor.png")).convert_alpha()
+        self.floor = pygame.transform.scale(self.floor, (100, 100))
+        self.opened = False
+        # self.image.set_colorkey((255, 255, 255))
+
+    def change_img(self,image_name):
+        self.image = pygame.image.load(os.path.join("output_images", image_name)).convert_alpha()
+        self.image = pygame.transform.scale(self.image, self.size)
+        # self.image.set_colorkey((255, 255, 255))
+
+    def move(self,delta_left, delta_top):
+
+        new_left = self.rect.left + delta_left
+        new_top = self.rect.top + delta_top
+        print(f'new_left:{new_left},new_top:{new_top}')
+        if new_left >=750:
+            print("win!")
+            return
+        # x：[160,250] y：[400,460]
+        if 160 <= new_left <= 250 and 360 <= new_top <= 460:
+            return
+        if new_left < 0 or new_top < 380 or new_left + self.size[0] > 800 or new_top + self.size[1] > 600:
+            return
+        # x：[650,750] y：[360,530]
+        if 650 <= new_left <= 750 and 360 <= new_top <= 530:
+            return
+        # x：[650,750] y：[530,600]
+        if not self.opened and 650 <= new_left <= 750 and 360 <= new_top <= 600:
+            return
+        else:
+            self.rect.left = new_left
+            self.rect.top = new_top
+
+
+    def try_open(self):
+        print("open")
+        # x[650,750] y[530,600]
+        print(self.rect.left, self.rect.top)
+        if 640 <= self.rect.left+self.size[0]//2 <= 750 and 530 <= self.rect.top + self.size[1]//2 <= 600:
+            self.opened = True
+            return True
+
+        return False
+
+    def open(self,scene):
+        print("open the box")
+        scene.blit(self.floor, (0, 0))
+        print("success")
