@@ -1,0 +1,191 @@
+import pygame
+import sys
+
+pygame.init()
+screen = pygame.display.set_mode((800，600))
+pygame.display.set_caption("memento")
+font = pygame.font.Font(None, 74)
+small_font = pygame.font.Font(None, 36)
+white = (255, 255, 255)
+black = (0, 0, 0)
+red = (255, 0, 0)
+
+background_image = pygame.image.load("Map006.png")
+background_image = pygame.transform.scale(background_image, (800, 600))
+
+clock = pygame.time.Clock()
+FPS = 60
+
+obstacles = [
+    {"x": 50, "y": 400, "width": 150, "height": 100, "type": "bed"},
+    {"x": 350, "y": 250, "width": 150, "height": 100, "type": "table"},
+    {"x": 600, "y": 450, "width": 150, "height": 100, "type": "barrels"},
+    {"x": 550, "y": 50, "width": 200, "height": 150, "type": "bookshelves"}
+]
+
+player = ("amie_1.jpg",(50,50))
+player_size = 50
+player_x = 800 // 2
+player_y = 600 // 2
+player_speed = 5
+
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+
+def check_obstacle_collision(player_x, player_y, player_width, player_height, obstacles):
+    for obstacle in obstacles:
+        if (player_x < obstacle["x"] + obstacle["width"] and
+            player_x + player_width > obstacle["x"] and
+            player_y < obstacle["y"] + obstacle["height"] and
+            player_y + player_height > obstacle["y"]):
+            return True 
+    return False 
+
+
+interactive_obstacle_size = 80
+interactive_obstacle_color = (128, 128, 128)
+interact_obstacle_x = 500
+interactive_obstacle_y = 400
+interaction_message = ""
+
+
+font = pygame.font.Font(None, 36)
+def draw_text(text, color, x, y):
+    """Draws text on the screen."""
+    text_surface = font.render(text, True, color)
+    screen.blit(text_surface, (x, y))
+
+def draw_text_box(message, color):
+    """Draw a text box at the bottom of the screen."""
+    box_width = 800 - 40
+    box_height = 100
+    box_x = 20
+    box_y = 600 - box_height - 20
+    pygame.draw.rect(screen, BLACK, (box_x, box_y, box_width, box_height))
+    pygame.draw.rect(screen, WHITE, (box_x, box_y, box_width, box_height), 2)
+    draw_text(message, WHITE, box_x + 10, box_y + 10)
+
+
+game_over = False
+
+def check_collision(x1, y1, size1, x2, y2, size2):
+    return (x1 < x2 + size2 and x1 + size1 > x2 and
+            y1 < y2 + size2 and y1 + size1 > y2)
+
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    
+    keys = pygame.key.get_pressed()
+
+    
+    new_x = player_x
+    new_y = player_y
+
+    if keys[pygame.K_w]:
+        new_y -= player_speed
+    if keys[pygame.K_s]:
+        new_y += player_speed
+    if keys[pygame.K_a]:
+        new_x -= player_speed
+    if keys[pygame.K_d]:
+        new_x += player_speed
+
+    
+    new_x = max(0, min(800 - player, new_x))
+    new_y = max(0, min(600 - player, new_y))
+
+    
+    if not check_collision(new_x, new_y, player, obstacles):
+        player_x = new_x
+        player_y = new_y
+
+
+    
+    if check_collision(player_x, player_y, interactive_obstacle_x, interactive_obstacle_y, interactive_obstacle_size):
+        if keys[pygame.K_e]:
+            interaction_message = ""
+    else:
+        interaction_message = ""
+
+    screen.blit(background_image, (0, 0))
+
+    clock.tick(FPS)
+
+
+#countdown system
+def countdown(seconds, task_done_callback):
+    start_ticks = pygame.time.get_ticks()  
+    task_done = False
+
+    while seconds > 0:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:  
+                if event.key == pygame.K_SPACE:  
+                    task_done = True
+
+
+        if task_done:
+            task_done_callback(True)
+            return
+
+
+        elapsed_ticks = pygame.time.get_ticks() - start_ticks
+        seconds_left = seconds - elapsed_ticks // 1000
+
+        screen.fill(black)
+
+        text = font.render(str(max(seconds_left, 0)), True, white)
+        text_rect = text.get_rect(center=(320, 240))
+        screen.blit(text, text_rect)
+
+        task_text = small_font.render("", True, white)
+        task_rect = task_text.get_rect(center=(320, 140))
+        screen.blit(task_text, task_rect)
+
+        pygame.display.flip()
+
+        if seconds_left <= 0:
+            task_done_callback(False)
+            return
+        
+def game_loop():
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN: 
+                    countdown(60, handle_task_result)
+
+        screen.fill(black)
+        intro_text = small_font.render("", True, white)
+        intro_rect = intro_text.get_rect(center=(320, 140))
+        screen.blit(intro_text, intro_rect)
+        pygame.display.flip()
+
+def handle_task_result(success):
+    if success:
+        result_text = ""
+        color = white
+    else:
+        result_text = ""
+        color = red
+
+    screen.fill(black)
+    result_render = font.render(result_text, True, color)
+    result_rect = result_render.get_rect(center=(320, 140))
+    screen.blit(result_render, result_rect)
+    pygame.display.flip()
+    pygame.time.wait(2000)  
+
+game_loop()
